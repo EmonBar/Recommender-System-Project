@@ -1,7 +1,8 @@
-# Système de Recommandation de Paires de Films
+# Recommender System Project
 
 ## Présentation du Projet
-Ce projet développe un système de recommandation de paires de films qui suggère des films basés sur des genres, des thèmes ou des préférences des spectateurs complémentaires. Il intègre des données de MovieLens et IMDb pour fournir des recommandations.
+Ce projet développe un système de recommandation de paires de films qui suggère des films. 
+Il intègre des données de MovieLens et IMDb pour fournir des recommandations.
 
 ## Jeux de Données
 Les jeux de données suivants ont été utilisés :
@@ -62,42 +63,47 @@ Je voulais utiliser title.crew.tsv pour obtenir les directeurs mais je me suis d
 
 ### Création de la Matrice d'Interaction User-Item
 - Création d'une table pivot avec `UserID`, `CleanTitle` et `CompositeRating` pour former une matrice d'interaction user-item.
-- Remplacement des valeurs manquantes dans la matrice par la moyenne des évaluations.
 
-### Division des Données pour l'Évaluation du Modèle
-- Division de l'ensemble de données en ensembles d'entraînement et de test (80% pour l'entraînement et 20% pour le test).
+## Modélisation
+### Configuration du Modèle
+- Utilisation de l'algorithme SVD de la bibliothèque Surprise pour prédire les évaluations non observées, avec des hyperparamètres spécifiques ajustés pour optimiser les performances.
 
-### Configuration et Évaluation du Modèle
-- Configuration de l'algorithme SVD avec des hyperparamètres spécifiques :
-  ```python
-  reader = Reader(rating_scale=(1, 10))
-  data = Dataset.load_from_df(train_data[['UserID', 'MovieID', 'CompositeRating']], reader)
-  algo = SVD(n_factors=100, n_epochs=20, lr_all=0.005, reg_all=0.02)
-  ```
+### Division des Données
+- Séparation des données en ensembles d'entraînement et de test pour évaluer la performance du modèle.
 
-Entraînement et évaluation du modèle en utilisant une validation croisée à 5 plis pour mesurer les performances avec RMSE et MAE.
+### Évaluation du Modèle
+- Le modèle est évalué en utilisant le RMSE et le MAE pour quantifier les erreurs de prédiction. Efficace pour mesurer l'exactitude des prédictions du modèle ainsi qu'avoir une mesure directe de l'erreur moyenne dans les prédictions.
+- J'ai aussi mis la précision, le rappel et le f1_score pour plus de précisions.
 
-### Résultats du Modèle
+## Résultats et Discussion
 
-Entraînement et test du modèle SVD ont donné un RMSE de 0.8812 sur le jeu de test, indiquant une bonne précision des prédictions.
+Après avoir évalué notre système de recommandation, les résultats confirment une forte précision dans nos prédictions de films :
 
-### Calcul des Scores pour les Couples
+- **RMSE (Erreur Quadratique Moyenne) :** 0.8799 - Les erreurs entre les notes prédites et réelles sont faibles, en moyenne inférieures à 1 sur une échelle de 10, ce qui témoigne de la précision du modèle.
 
-Définition d'une fonction couple_score pour prédire les notes des films pour deux utilisateurs et retourner la moyenne des deux scores
+- **MAE (Erreur Absolue Moyenne) :** 0.6934 - L'erreur moyenne des prédictions est moins de 0.7 sur 10, indiquant que les prédictions sont proches des notes réelles.
 
-### Génération de Recommandations de Films pour les Couples
+- **Précision Moyenne :** 0.9933 - La majorité des recommandations sont jugées pertinentes, signifiant que les films suggérés sont susceptibles de plaire aux utilisateurs.
 
-Génération des recommandations de films pour un couple en calculant les scores moyens et en retournant les 10 meilleurs films recommandés sous ce format :
+- **Rappel Moyen :** 0.6740 - Le système recommande environ 67% des films que les utilisateurs pourraient apprécier, indiquant une bonne couverture des intérêts des utilisateurs, bien que cela puisse être amélioré.
 
+- **Score F1 à k :** 0.8031 - Ce score équilibré entre la précision et le rappel montre que le système fait un bon compromis entre recommander des films pertinents et couvrir les préférences des utilisateurs.
+
+## Recommandations
+- Génération des recommandations pour les couples en utilisant les scores moyens prévus pour sélectionner les 10 meilleurs films.
+- Exemple de sortie des recommandations présentant une liste des films avec les scores moyens associés.
+
+Exemple :
 ```
-('forrest gump', 8.936833259016685)
-('saving private ryan', 8.906167567026777)
-('schindler's list', 8.905076156655655)
-('gladiator', 8.874940290546995)
-('star wars: episode iv - a new hope', 8.853283426124957)
-('12 angry men', 8.767683654508183)
-('to kill a mockingbird', 8.735653013551273)
-('it's a wonderful life', 8.69999852243148)
-('sanjuro', 8.637534118104906)
-('stop making sense', 8.634620824176773)
+                        MovieTitle  Average_Prediction
+0                 schindler's list            8.963083
+1  one flew over the cuckoo's nest            8.836204
+2            it's a wonderful life            8.821984
+3                     pulp fiction            8.810514
+4                     12 angry men            8.807151
+5                      rear window            8.791502
+6                       casablanca            8.764301
+7                stop making sense            8.757113
+8                          sanjuro            8.734830
+9            to kill a mockingbird            8.734041
 ```
